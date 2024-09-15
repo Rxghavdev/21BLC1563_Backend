@@ -7,6 +7,7 @@ import (
     "trademarkia/internal/db"
     "trademarkia/internal/handlers"
     "trademarkia/internal/middlewares"
+    "trademarkia/middleware"
     "trademarkia/internal/background" // Import the background package
 )
 

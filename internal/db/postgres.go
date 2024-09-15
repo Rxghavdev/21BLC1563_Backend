@@ -1,23 +1,29 @@
+
 package db
 
 import (
     "database/sql"
     "log"
-    _ "github.com/lib/pq"
+    _ "github.com/lib/pq" 
 )
 
 var DB *sql.DB
 
-// Initialize the PostgreSQL connection
 func InitDB() error {
+    return initPostgresDB("user=postgres password=Trademark dbname=trademark sslmode=disable")
+}
+
+func InitTestDB(connStr string) error {
+    return initPostgresDB(connStr)
+}
+
+func initPostgresDB(connStr string) error {
     var err error
-    connStr := "user=postgres password=Trademark dbname=trademark sslmode=disable"
     DB, err = sql.Open("postgres", connStr)
     if err != nil {
         return err
     }
 
-    // Ping the database to ensure the connection is valid
     err = DB.Ping()
     if err != nil {
         return err

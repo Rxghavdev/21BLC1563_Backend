@@ -7,6 +7,7 @@ import (
     "net/http"
     "time"
     "trademarkia/internal/db"
+
     "github.com/dgrijalva/jwt-go"
     "golang.org/x/crypto/bcrypt"
 )
@@ -15,8 +16,12 @@ var jwtKey = []byte("my_secret_key")
 
 // User struct defines the registration credentials
 type User struct {
-    Email    string `json:"email"`
-    Password string `json:"password"`
+    ID        int       `json:"id"`
+    Username  string    `json:"username"`
+    Email     string    `json:"email"`
+    Password  string    `json:"password"`
+    CreatedAt time.Time `json:"created_at"`
+    UpdatedAt time.Time `json:"updated_at"`
 }
 
 // Credentials struct for login
