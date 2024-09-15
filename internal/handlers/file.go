@@ -107,15 +107,12 @@ func HandleFileUpload(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Cache the metadata in Redis with the file ID and new name
     cacheFileMetadata(fileID, handler.Filename)
 
-    // Send success response
     w.Write([]byte(fmt.Sprintf("File uploaded successfully. Public URL: %s", fileURL)))
 }
 
 
-// storeFileMetadata saves the file metadata in the database and returns the file ID
 func storeFileMetadata(filename string, fileSize int64, userID int) int {
     var fileID int
     err := db.DB.QueryRow("INSERT INTO files (user_id, file_name, file_size, upload_date) VALUES ($1, $2, $3, $4) RETURNING id",
@@ -127,7 +124,6 @@ func storeFileMetadata(filename string, fileSize int64, userID int) int {
     return fileID
 }
 
-// cacheFileMetadata stores file metadata in Redis
 func cacheFileMetadatad(fileID int, fileName string) {
     err := rdb.Set(ctx, fmt.Sprintf("file_%d", fileID), fileName, 24*time.Hour).Err()
     if err != nil {
@@ -137,7 +133,6 @@ func cacheFileMetadatad(fileID int, fileName string) {
     }
 }
 
-// processFileUpload handles the actual file upload to S3
 func processFileUpload(filename string, fileBytes []byte) (string, error) {
     log.Printf("Processing upload for file: %s", filename)
 
@@ -165,7 +160,6 @@ func uploadToS3(filename string, fileBytes []byte) (string, error) {
         return "", err
     }
 
-    // Use %20 for spaces in URLs
     encodedFilename := strings.ReplaceAll(filename, " ", "%20")
     fileURL := fmt.Sprintf("https://trademarkiaa.s3.ap-south-1.amazonaws.com/%s", encodedFilename)
     return fileURL, nil

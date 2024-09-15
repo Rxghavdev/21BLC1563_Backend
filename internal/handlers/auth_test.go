@@ -111,9 +111,7 @@ import (
     _ "github.com/lib/pq"
 )
 
-// setupTestDB initializes a PostgreSQL database for testing.
 func setupTestDB() *sql.DB {
-    // Connection string for PostgreSQL (replace these values with your actual configuration)
     connStr := "user=postgres password=Trademark dbname=trademark_test sslmode=disable"
 
     testDB, err := sql.Open("postgres", connStr)
@@ -121,7 +119,6 @@ func setupTestDB() *sql.DB {
         panic("failed to connect to test database: " + err.Error())
     }
 
-    // Create the necessary table for testing
     createUserTable := `
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -133,7 +130,6 @@ func setupTestDB() *sql.DB {
         panic("failed to create users table: " + err.Error())
     }
 
-    // Clean up the table before running tests
     if _, err := testDB.Exec("TRUNCATE TABLE users"); err != nil {
         panic("failed to clean up users table: " + err.Error())
     }
@@ -141,7 +137,6 @@ func setupTestDB() *sql.DB {
     return testDB
 }
 
-// RegisterHandler registers a new user (mock registration handler)
 func RegisterHandler(db *sql.DB) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         var creds map[string]string
@@ -151,14 +146,12 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
             return
         }
 
-        // Hash the password
         hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds["password"]), bcrypt.DefaultCost)
         if err != nil {
             http.Error(w, "Error while hashing password", http.StatusInternalServerError)
             return
         }
 
-        // Insert the user into the database
         _, err = db.Exec("INSERT INTO users (email, password) VALUES ($1, $2)", creds["email"], string(hashedPassword))
         if err != nil {
             http.Error(w, "Error registering user", http.StatusInternalServerError)
@@ -170,7 +163,6 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
     }
 }
 
-// LoginHandler logs in a user (mock login handler)
 func LoginHandler(db *sql.DB) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         var creds map[string]string
@@ -180,7 +172,6 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
             return
         }
 
-        // Fetch the user from the database
         var storedPassword string
         err = db.QueryRow("SELECT password FROM users WHERE email = $1", creds["email"]).Scan(&storedPassword)
         if err != nil {
@@ -188,24 +179,20 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
             return
         }
 
-        // Compare the hashed password with the provided password
         if err := bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(creds["password"])); err != nil {
             http.Error(w, "Invalid password", http.StatusUnauthorized)
             return
         }
 
-        // Simulate JWT generation (mock)
         w.WriteHeader(http.StatusOK)
         w.Write([]byte("mock.jwt.token"))
     }
 }
 
 func TestRegisterAndLogin(t *testing.T) {
-    // Initialize the test database
     testDB := setupTestDB()
     defer testDB.Close()
 
-    // Register a new user
     registerPayload := map[string]string{
         "email":    "test@exa.com",
         "password": "password123",
@@ -224,16 +211,13 @@ func TestRegisterAndLogin(t *testing.T) {
 
     rr := httptest.NewRecorder()
 
-    // Invoke the Register handler
     registerHandler := RegisterHandler(testDB)
     registerHandler.ServeHTTP(rr, req)
 
-    // Check the status code for registration
     if rr.Code != http.StatusCreated {
         t.Errorf("Register handler returned wrong status code: got %v want %v", rr.Code, http.StatusCreated)
     }
 
-    // Now test login with the registered user's credentials
     loginPayload := map[string]string{
         "email":    "test@exa.com",
         "password": "password123", // Correct password
