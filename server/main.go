@@ -7,6 +7,7 @@ import (
     "trademarkia/internal/db"
     "trademarkia/internal/handlers"
     "trademarkia/internal/middlewares"
+    "trademarkia/internal/background" // Import the background package
 )
 
 func main() {
@@ -15,6 +16,9 @@ func main() {
     if err != nil {
         log.Fatal("Error connecting to the database: ", err)
     }
+
+    // Start the background worker for deleting expired files
+    background.StartFileDeletionWorker()
 
     // Create a new router using Gorilla Mux
     router := mux.NewRouter()
@@ -28,6 +32,7 @@ func main() {
     router.Handle("/search", middlewares.JWTMiddleware(http.HandlerFunc(handlers.HandleFileSearch))).Methods("GET")
     router.Handle("/files", middlewares.JWTMiddleware(http.HandlerFunc(handlers.GetFiles))).Methods("GET")
     router.Handle("/share/{file_id}", middlewares.JWTMiddleware(http.HandlerFunc(handlers.ShareFile))).Methods("GET")
+    router.Handle("/file/update/{file_id}", middlewares.JWTMiddleware(http.HandlerFunc(handlers.UpdateFileMetadata))).Methods("POST")
 
     // Start the server
     log.Println("Server is running on port 8080...")
